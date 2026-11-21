@@ -40,12 +40,17 @@ function BarChart({ weekly }) {
 export default function Dashboard() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    getDashboard(todayISO()).then(d => { setData(d); setLoading(false) })
+    getDashboard(todayISO())
+      .then(d => setData(d))
+      .catch(err => setError(err.message || 'Erreur de chargement'))
+      .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <div style={{ color: 'var(--text-secondary)', padding: 40 }}>Chargement…</div>
+  if (error)   return <div style={{ color: '#b91c1c', background: '#fff0f0', border: '1px solid #fca5a5', borderRadius: 10, padding: '16px 20px', margin: '8px 0' }}>{error}</div>
   if (!data)   return null
 
   const dateLabel = formatDateLong(todayISO())

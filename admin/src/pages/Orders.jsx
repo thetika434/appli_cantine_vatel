@@ -19,16 +19,17 @@ export default function Orders() {
   const [data, setData]       = useState(null)
   const [orders, setOrders]   = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState('')
   const [tab, setTab]         = useState('all')
   const [search, setSearch]   = useState('')
 
   useEffect(() => {
     setLoading(true)
-    getOrders(date).then(d => {
-      setData(d)
-      setOrders(d.orders ?? [])
-      setLoading(false)
-    })
+    setError('')
+    getOrders(date)
+      .then(d => { setData(d); setOrders(d.orders ?? []) })
+      .catch(err => setError(err.message || 'Erreur de chargement'))
+      .finally(() => setLoading(false))
   }, [date])
 
   const counts = useMemo(() => ({
@@ -93,6 +94,7 @@ export default function Orders() {
       </div>
 
       {loading && <div style={{ color: 'var(--text-secondary)', padding: '40px 0' }}>Chargement…</div>}
+      {error && <div style={{ color: '#b91c1c', background: '#fff0f0', border: '1px solid #fca5a5', borderRadius: 10, padding: '16px 20px' }}>{error}</div>}
 
       {!loading && (
         <>
