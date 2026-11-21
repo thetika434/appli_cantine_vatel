@@ -21,6 +21,7 @@ class CantineApp extends StatelessWidget {
     final repo = ApiService();
 
     return MaterialApp(
+      navigatorKey: appNavigatorKey,
       title: 'Dabali',
       theme: AppTheme.theme,
       debugShowCheckedModeBanner: false,

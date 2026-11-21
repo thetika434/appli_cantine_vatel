@@ -62,6 +62,12 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
     {'label':'Recharge Aya','student_name':'Aya','date':'Mer. 18','type':'credit','amount_fcfa':5000,'local_asset':null},
   ];
 
+  Future<void> _openRecharge(_Child child) async {
+    await Navigator.push(context, MaterialPageRoute(
+      builder: (_) => RechargeScreen(studentId: child.id, studentName: child.name, currentBalance: child.balance)));
+    if (mounted) _load();
+  }
+
   String _greeting() {
     final h = DateTime.now().hour;
     return h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
@@ -101,8 +107,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                 if (lowBalance.isNotEmpty) ...[
                   const SizedBox(height:12),
                   ElevatedButton(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(
-                      builder:(_) => RechargeScreen(studentId:lowBalance.first.id, studentName:lowBalance.first.name, currentBalance:lowBalance.first.balance))),
+                    onPressed: () => _openRecharge(lowBalance.first),
                     child: Text('+ Recharger ${lowBalance.first.name.split(' ').first}'),
                   ),
                 ],

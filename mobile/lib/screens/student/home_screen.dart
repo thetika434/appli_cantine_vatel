@@ -55,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       if (mounted) setState(() { _todayDishes = dishes; _loading = false; });
     } catch (_) {
-      if (mounted) setState(() { _loading = false; _todayDishes = _fakeDishes(); });
+      if (mounted) setState(() { _loading = false; _todayDishes = _fakeDishes(); _balance = 5000; });
     }
   }
 
@@ -158,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       const SizedBox(height:12),
       GestureDetector(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder:(_) => const RechargeScreen())),
+        onTap: _openRecharge,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal:16, vertical:8),
           decoration: BoxDecoration(
@@ -212,9 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height:12),
         ElevatedButton(
-          onPressed: dish.isAvailable
-            ? () => Navigator.push(context, MaterialPageRoute(builder:(_)=>DishDetailScreen(dish:dish, balance:_balance)))
-            : null,
+          onPressed: dish.isAvailable ? () => _openDish(dish) : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: dish.isAvailable ? AppColors.orange : AppColors.surfaceHigh,
             foregroundColor: dish.isAvailable ? Colors.white : AppColors.textSecondary,
@@ -225,9 +223,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _openRecharge() async {
+    await Navigator.push(context,
+        MaterialPageRoute(builder: (_) => RechargeScreen(currentBalance: _balance)));
+    if (mounted) _load();
+  }
+
+  Future<void> _openDish(Dish dish) async {
+    final result = await Navigator.push(context,
+        MaterialPageRoute(builder: (_) => DishDetailScreen(dish: dish, balance: _balance)));
+    if (result is int && mounted) setState(() => _balance = result);
+  }
+
   Widget _miniCard(Dish dish) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder:(_)=>DishDetailScreen(dish:dish, balance:_balance))),
+      onTap: () => _openDish(dish),
       child: Container(
         margin: const EdgeInsets.fromLTRB(16,0,16,8),
         padding: const EdgeInsets.all(10),

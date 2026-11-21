@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dns_fallback_stub.dart' if (dart.library.io) 'dns_fallback_io.dart';
 
 const _baseUrl = 'https://cantine-vatel.duckdns.org/api';
 const _tokenKey = 'auth_token';
@@ -17,10 +19,11 @@ class ApiService implements AuthRepository {
   ApiService() {
     _dio = Dio(BaseOptions(
       baseUrl: _baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 45),
+      receiveTimeout: const Duration(seconds: 45),
       headers: {'Content-Type': 'application/json'},
     ));
+    configureDnsFallback(_dio);
     _dio.interceptors.add(_AuthInterceptor());
   }
 
@@ -112,7 +115,12 @@ class ApiService implements AuthRepository {
     };
     final resp = await _dio.post(path,
         data: body,
-        options: Options(headers: {'Authorization': 'Bearer $token'}));
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          // Adullam peut être lent : on laisse jusqu'à 45s
+          sendTimeout: const Duration(seconds: 45),
+          receiveTimeout: const Duration(seconds: 45),
+        ));
     return resp.data as Map<String, dynamic>;
   }
 
@@ -144,9 +152,17 @@ class ApiService implements AuthRepository {
   }
 }
 
+final appNavigatorKey = GlobalKey<NavigatorState>();
+
 class _AuthInterceptor extends Interceptor {
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
+  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401 && err.requestOptions.path != '/auth/login') {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_tokenKey);
+      await prefs.remove(_userKey);
+      appNavigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (_) => false);
+    }
     handler.next(err);
   }
 }

@@ -61,7 +61,11 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).popUntil((r) => r.isFirst);
+              final total = widget.dish.priceFcfa * widget.qty;
+              final newBal = widget.balance - total;
+              // pop summary → pop detail avec le nouveau solde
+              Navigator.of(context).pop();
+              Navigator.of(context).pop(newBal);
             },
             child: const Text('Retour à l\'accueil'),
           ),

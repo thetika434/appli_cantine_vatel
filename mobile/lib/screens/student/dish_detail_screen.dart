@@ -91,6 +91,7 @@ class _DishDetailScreenState extends State<DishDetailScreen> {
                   onPressed: dish.isAvailable
                     ? () => Navigator.push(context, MaterialPageRoute(
                         builder: (_) => ReservationSummaryScreen(dish: dish, qty: _qty, balance: widget.balance)))
+                      .then((newBal) { if (newBal is int && mounted) Navigator.of(context).pop(newBal); })
                     : null,
                   style: ElevatedButton.styleFrom(minimumSize: const Size(0, 52)),
                   child: Text('Ajouter · ${_fmt(total)} FCFA', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700)),
