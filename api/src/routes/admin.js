@@ -27,7 +27,7 @@ router.get('/admin/dashboard', ...admin, async (req, res) => {
               COALESCE(SUM(d.price_fcfa) FILTER (WHERE r.status != 'cancelled'), 0) AS revenue_fcfa,
               COUNT(r.id) FILTER (WHERE r.status != 'cancelled') AS orders
        FROM generate_series(
-         (DATE $1 - INTERVAL '6 days')::date,
+         ($1::date - INTERVAL '6 days')::date,
          $1::date,
          '1 day'::interval
        ) gs(day)
@@ -72,7 +72,7 @@ router.get('/admin/dashboard', ...admin, async (req, res) => {
     });
   } catch (err) {
     console.error('GET /admin/dashboard', err);
-    res.status(500).json({ error: 'Erreur serveur', detail: err.message });
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
