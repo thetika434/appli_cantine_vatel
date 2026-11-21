@@ -480,6 +480,69 @@ Erreurs :
 
 ---
 
+### GET /api/menus/week
+
+**En-tête :** `Authorization: Bearer <token>` (rôle `student`)  
+**Query param :** `?date=2026-11-24` (optionnel, défaut = aujourd'hui)
+
+Réponse **200** :
+```json
+{
+  "week_start": "2026-11-24",
+  "week_end": "2026-11-28",
+  "days": [
+    {
+      "date": "2026-11-24",
+      "dishes": [
+        {
+          "id": 1,
+          "name": "Alloco poulet braisé",
+          "description": "...",
+          "photo_url": null,
+          "price_fcfa": 1000,
+          "slot_start": "12:00:00",
+          "slot_end": "13:30:00",
+          "quantity": 30,
+          "visible": true
+        }
+      ]
+    }
+  ]
+}
+```
+- Seuls les plats `visible = true` sont retournés.
+- `days` contient uniquement les jours ayant au moins un plat.
+
+Erreurs : 401 (token manquant/invalide), 403 (rôle non autorisé)
+
+---
+
+### GET /api/dishes/:id
+
+**En-tête :** `Authorization: Bearer <token>` (rôle `student`)
+
+Réponse **200** :
+```json
+{
+  "dish": {
+    "id": 1,
+    "name": "Alloco poulet braisé",
+    "description": "Bananes plantain frites avec poulet braisé et sauce piment",
+    "photo_url": null,
+    "price_fcfa": 1000,
+    "serve_date": "2026-11-24",
+    "slot_start": "12:00:00",
+    "slot_end": "13:30:00",
+    "quantity": 30,
+    "visible": true
+  }
+}
+```
+
+Erreurs : 401, 403, 404 `{ "error": "Plat introuvable" }`
+
+---
+
 ### GET /api/me
 
 **En-tête requis :** `Authorization: Bearer <token>`
