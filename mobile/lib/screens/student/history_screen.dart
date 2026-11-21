@@ -130,7 +130,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         Text(
           isCredit ? '+ ${_fmt(amount)} FCFA' : '– ${_fmt(amount)} FCFA',
           style:GoogleFonts.poppins(fontSize:13, fontWeight:FontWeight.w700,
-            color: isCredit ? AppColors.green : AppColors.textPrimary),
+            color: isCredit ? AppColors.green : AppColors.red),
         ),
       ]),
     );

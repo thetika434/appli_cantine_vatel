@@ -144,7 +144,7 @@ class _ParentHistoryScreenState extends State<ParentHistoryScreen> {
           Text('$student · $date', style:GoogleFonts.inter(fontSize:12, color:AppColors.textSecondary)),
         ])),
         Text(isCredit ? '+ ${_fmt(amount)} FCFA' : '– ${_fmt(amount)} FCFA',
-          style:GoogleFonts.poppins(fontSize:13, fontWeight:FontWeight.w700, color: isCredit ? AppColors.green : AppColors.textPrimary)),
+          style:GoogleFonts.poppins(fontSize:13, fontWeight:FontWeight.w700, color: isCredit ? AppColors.green : AppColors.red)),
       ]),
     );
   }

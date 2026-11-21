@@ -48,7 +48,7 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
             child:const Icon(Icons.chevron_left, color:AppColors.textPrimary, size:28)),
         ),
       ),
-      body: Padding(
+      body: SafeArea(child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment:CrossAxisAlignment.start, children:[
           if (widget.children.length > 1) _childTabs(),
@@ -89,7 +89,7 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
             _mealRow('Riz sauce tomate poulet', 'Mer. 18', 1000, 'assets/images/riz_sauce_tomate.jpg'),
           ])),
         ]),
-      ),
+      )),
     );
   }
 
@@ -124,7 +124,7 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
         Text(name, style:GoogleFonts.poppins(fontSize:13, fontWeight:FontWeight.w600, color:AppColors.textPrimary), maxLines:1, overflow:TextOverflow.ellipsis),
         Text(date, style:GoogleFonts.inter(fontSize:12, color:AppColors.textSecondary)),
       ])),
-      Text('– ${_fmt(amount)} FCFA', style:GoogleFonts.poppins(fontSize:13, fontWeight:FontWeight.w700, color:AppColors.textPrimary)),
+      Text('– ${_fmt(amount)} FCFA', style:GoogleFonts.poppins(fontSize:13, fontWeight:FontWeight.w700, color:AppColors.red)),
     ]),
   );
 

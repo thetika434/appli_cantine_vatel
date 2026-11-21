@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme.dart';
 import '../../services/api.dart';
 import '../../models/dish.dart';
@@ -17,7 +16,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _balanceVisible = true;
   int _balance = 0;
-  String _userName = '';
   List<Dish> _todayDishes = [];
   String? _menuDate;
   bool _loading = true;
@@ -43,13 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _load() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString('auth_user') ?? '';
-      for (final part in raw.split('|')) {
-        if (part.startsWith('full_name=')) {
-          _userName = part.substring(10);
-        }
-      }
       final me = await _api.getMe();
       _balance = (me['balance'] as int?) ?? 0;
       final todayStr = isoDate(DateTime.now());
@@ -80,13 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
     const Dish(id:4, name:'Foutou sauce gombo', description:'Foutou banane avec sauce gombo et viande.', localAsset:'assets/images/foutou_banane.jpg', priceFcfa:1500, serveDate:'', slotStart:'12:00', slotEnd:'13:30', quantity:0, visible:true),
   ];
 
-  String _greeting() {
-    final h = DateTime.now().hour;
-    if (h < 12) return 'Bonjour';
-    if (h < 18) return 'Bon après-midi';
-    return 'Bonsoir';
-  }
-
   @override
   Widget build(BuildContext context) {
     final hero = _todayDishes.isNotEmpty ? _todayDishes[0] : null;
@@ -101,7 +85,6 @@ class _HomeScreenState extends State<HomeScreen> {
               onRefresh: _load,
               child: CustomScrollView(
                 slivers: [
-                  SliverToBoxAdapter(child: _header()),
                   SliverToBoxAdapter(child: _balanceCard()),
                   if (hero != null) ...[
                     SliverToBoxAdapter(child: _sectionHeader()),
@@ -128,62 +111,44 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _header() => Padding(
-    padding: const EdgeInsets.fromLTRB(16,16,16,0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('${_greeting()},', style: GoogleFonts.inter(fontSize:13, color:AppColors.textSecondary)),
-          Text(_userName.isNotEmpty ? _userName.split(' ').first : 'Élève',
-            style: GoogleFonts.poppins(fontSize:18, fontWeight:FontWeight.w700, color:AppColors.textPrimary)),
-        ]),
-        Container(
-          width:40, height:40,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.06), blurRadius:8)],
-          ),
-          child: const Icon(Icons.notifications_outlined, color:AppColors.textPrimary, size:20),
-        ),
-      ],
-    ),
-  );
-
   Widget _balanceCard() => Container(
     margin: const EdgeInsets.fromLTRB(16,16,16,0),
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: AppColors.orange,
-      borderRadius: BorderRadius.circular(20),
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+    decoration: const BoxDecoration(
+      image: DecorationImage(image: AssetImage('assets/images/cadre_orange.png'), fit: BoxFit.fill),
     ),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text('Mon solde', style: GoogleFonts.inter(fontSize:13, color: Colors.white.withValues(alpha:0.85))),
+    child: Column(children: [
+      Text('Mon solde', style: GoogleFonts.inter(fontSize:14, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha:0.9))),
+      const SizedBox(height:6),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              _balanceVisible ? '${_formatFcfa(_balance)} FCFA' : '• • • • •',
+              style: GoogleFonts.poppins(fontSize:38, fontWeight:FontWeight.w800, color:Colors.white),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
         GestureDetector(
           onTap: () => setState(() => _balanceVisible = !_balanceVisible),
-          child: Icon(_balanceVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined, color:Colors.white, size:20),
+          child: Icon(_balanceVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined, color:Colors.white, size:24),
         ),
       ]),
-      const SizedBox(height:4),
-      Text(
-        _balanceVisible ? '${_formatFcfa(_balance)} FCFA' : '• • • • •',
-        style: GoogleFonts.poppins(fontSize:28, fontWeight:FontWeight.w800, color:Colors.white),
-      ),
-      const SizedBox(height:12),
+      const SizedBox(height:16),
       GestureDetector(
         onTap: _openRecharge,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal:16, vertical:8),
+          padding: const EdgeInsets.symmetric(horizontal:22, vertical:10),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            color: AppColors.green,
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.add, size:16, color:AppColors.textPrimary),
-            const SizedBox(width:4),
-            Text('Recharger', style: GoogleFonts.poppins(fontSize:13, fontWeight:FontWeight.w600, color:AppColors.textPrimary)),
+            const Icon(Icons.add, size:18, color:Colors.white),
+            const SizedBox(width:6),
+            Text('Recharger', style: GoogleFonts.poppins(fontSize:14, fontWeight:FontWeight.w600, color:Colors.white)),
           ]),
         ),
       ),
@@ -243,10 +208,6 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height:12),
         ElevatedButton(
           onPressed: dish.isAvailable ? () => _openDish(dish) : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: dish.isAvailable ? AppColors.orange : AppColors.surfaceHigh,
-            foregroundColor: dish.isAvailable ? Colors.white : AppColors.textSecondary,
-          ),
           child: Text(dish.isAvailable ? 'Réserver' : 'Épuisé'),
         ),
       ]),
@@ -294,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (dish.isAvailable)
             Container(
               width:36, height:36,
-              decoration: BoxDecoration(color:AppColors.orange, borderRadius:BorderRadius.circular(10)),
+              decoration: BoxDecoration(color:AppColors.green, borderRadius:BorderRadius.circular(10)),
               child: const Icon(Icons.add, color:Colors.white, size:20),
             ),
         ]),

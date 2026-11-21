@@ -207,7 +207,7 @@ class _MenusScreenState extends State<MenusScreen> {
           if (dish.isAvailable)
             Container(
               width:36, height:36,
-              decoration:BoxDecoration(color:AppColors.orange, borderRadius:BorderRadius.circular(10)),
+              decoration:BoxDecoration(color:AppColors.green, borderRadius:BorderRadius.circular(10)),
               child:const Icon(Icons.add, color:Colors.white, size:20),
             )
           else

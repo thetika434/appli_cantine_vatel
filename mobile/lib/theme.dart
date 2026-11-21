@@ -5,8 +5,9 @@ class AppColors {
   static const background = Color(0xFFF3F6F0);
   static const surface = Color(0xFFFFFFFF);
   static const surfaceHigh = Color(0xFFE8EEE4);
-  static const orange = Color(0xFFFF8A1F);
+  static const orange = Color(0xFFF29D52);
   static const green = Color(0xFF34C17B);
+  static const red = Color(0xFFE5484D);
   static const textPrimary = Color(0xFF1F1B18);
   static const textSecondary = Color(0xFF6E6660);
 }
@@ -16,9 +17,9 @@ class AppTheme {
         useMaterial3: true,
         colorScheme: ColorScheme(
           brightness: Brightness.light,
-          primary: AppColors.orange,
+          primary: AppColors.green,
           onPrimary: Colors.white,
-          secondary: AppColors.green,
+          secondary: AppColors.orange,
           onSecondary: Colors.white,
           surface: AppColors.surface,
           onSurface: AppColors.textPrimary,
@@ -62,8 +63,10 @@ class AppTheme {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.orange,
+            backgroundColor: AppColors.green,
             foregroundColor: Colors.white,
+            disabledBackgroundColor: AppColors.surfaceHigh,
+            disabledForegroundColor: AppColors.textSecondary,
             minimumSize: const Size(double.infinity, 56),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),

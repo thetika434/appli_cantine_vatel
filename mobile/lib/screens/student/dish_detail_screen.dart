@@ -33,27 +33,31 @@ class _DishDetailScreenState extends State<DishDetailScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(children: [
-        CustomScrollView(slivers: [
-          SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            backgroundColor: AppColors.background,
-            leading: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-                child: const Icon(Icons.chevron_left, color: AppColors.textPrimary, size: 28),
+      body: SafeArea(
+        bottom: false,
+        child: ListView(padding: EdgeInsets.zero, children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            child: Row(children: [
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
+                  child: const Icon(Icons.chevron_left, color: AppColors.textPrimary, size: 28),
+                ),
               ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: _heroImage(dish),
+            ]),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: SizedBox(height: 240, child: _heroImage(dish)),
             ),
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20,20,20,100),
+          Padding(
+              padding: const EdgeInsets.fromLTRB(20,20,20,24),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(dish.name, style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
                 const SizedBox(height: 6),
@@ -70,13 +74,12 @@ class _DishDetailScreenState extends State<DishDetailScreen> {
                 const SizedBox(height: 16),
                 Text('Allergènes : non communiqués.', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary)),
               ]),
-            ),
           ),
         ]),
-        Positioned(
-          bottom: 0, left: 0, right: 0,
+      ),
+      bottomNavigationBar: SafeArea(
           child: Container(
-            padding: const EdgeInsets.fromLTRB(20,12,20,24),
+            padding: const EdgeInsets.fromLTRB(20,12,20,12),
             color: AppColors.background,
             child: Row(children: [
               _qtyButton(Icons.remove, () { if (_qty > 1) setState(() => _qty--); }),
@@ -94,13 +97,15 @@ class _DishDetailScreenState extends State<DishDetailScreen> {
                       .then((newBal) { if (newBal is int && mounted) Navigator.of(context).pop(newBal); })
                     : null,
                   style: ElevatedButton.styleFrom(minimumSize: const Size(0, 52)),
-                  child: Text('Ajouter · ${_fmt(total)} FCFA', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700)),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Ajouter · ${_fmt(total)} FCFA', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700)),
+                  ),
                 ),
               ),
             ]),
           ),
-        ),
-      ]),
+      ),
     );
   }
 

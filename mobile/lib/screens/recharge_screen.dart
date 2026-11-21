@@ -137,7 +137,8 @@ class _RechargeScreenState extends State<RechargeScreen> {
         ),
         title: Text('Recharger', style:GoogleFonts.poppins(fontSize:18, fontWeight:FontWeight.w700, color:AppColors.textPrimary)),
       ),
-      body: Padding(
+      body: SafeArea(
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment:CrossAxisAlignment.stretch, children:[
           Text('Solde : ${_fmt(widget.currentBalance)} FCFA',
@@ -194,15 +195,15 @@ class _RechargeScreenState extends State<RechargeScreen> {
             Text('${_fmt(newBalance > 0 ? newBalance : widget.currentBalance)} FCFA',
               style:GoogleFonts.poppins(fontSize:16, fontWeight:FontWeight.w700, color:AppColors.green)),
           ]),
-          const Spacer(),
+          const SizedBox(height:28),
           ElevatedButton(
             onPressed: (_amount > 0 && !_loading) ? _pay : null,
             child: _loading
               ? const SizedBox(height:20, width:20, child:CircularProgressIndicator(color:Colors.white, strokeWidth:2))
               : Text('Payer ${_fmt(_amount > 0 ? _amount : 0)} FCFA'),
           ),
-          const SizedBox(height:8),
         ]),
+        ),
       ),
     );
   }

@@ -17,8 +17,7 @@ class ReservationSummaryScreen extends StatefulWidget {
 
 class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
   bool _loading = false;
-  bool _balanceFresh = false;
-  late int _balance = widget.balance;
+  late int _balance = studentBalance.value ?? widget.balance;
   final _api = ApiService();
 
   @override
@@ -31,10 +30,8 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
     try {
       final me = await _api.getMe();
       final b = me['balance'];
-      if (mounted) setState(() { if (b is int) _balance = b; _balanceFresh = true; });
-    } catch (_) {
-      if (mounted) setState(() => _balanceFresh = true);
-    }
+      if (b is int && mounted) setState(() => _balance = b);
+    } catch (_) {}
   }
 
   String _fmt(int v) {
@@ -126,7 +123,8 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
         ),
         title: Text('Récapitulatif', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
       ),
-      body: Padding(
+      body: SafeArea(
+        child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Container(
@@ -152,7 +150,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
           const SizedBox(height: 20),
           _row('Solde', '${_fmt(_balance)} FCFA', bold: true),
           const Divider(height: 24, color: AppColors.surfaceHigh),
-          _row('Repas', '– ${_fmt(total)} FCFA'),
+          _row('Repas', '– ${_fmt(total)} FCFA', valueColor: AppColors.red),
           const Divider(height: 24, color: AppColors.surfaceHigh),
           _row('Nouveau solde', '${_fmt(newBalance)} FCFA', valueColor: AppColors.orange, bold: true),
           const Spacer(),
@@ -162,12 +160,13 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
               child: Text('Solde insuffisant.', style: GoogleFonts.inter(fontSize: 13, color: Colors.red), textAlign: TextAlign.center),
             ),
           ElevatedButton(
-            onPressed: (_balanceFresh && newBalance >= 0 && !_loading) ? _confirm : null,
+            onPressed: (newBalance >= 0 && !_loading) ? _confirm : null,
             child: _loading
               ? const SizedBox(height:20, width:20, child: CircularProgressIndicator(color:Colors.white, strokeWidth:2))
               : const Text('Confirmer'),
           ),
         ]),
+        ),
       ),
     );
   }
