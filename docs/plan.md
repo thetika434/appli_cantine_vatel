@@ -441,6 +441,73 @@ Tous les secrets vivent dans `/api/.env` sur le serveur. `api/.env.example` docu
 
 ---
 
+## Contrat API — référence session mobile
+
+> Format exact des requêtes et réponses. La session mobile s'y fie sans lire le code.
+
+---
+
+### POST /api/auth/login
+
+**Public — pas de token requis.**
+
+Requête `Content-Type: application/json` :
+```json
+{ "matricule": "VAT-24-0157", "password": "test1234" }
+```
+
+Réponse **200** :
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "user": {
+    "id": 2,
+    "role": "student",
+    "full_name": "Aya Koné",
+    "class": "Terminale D"
+  }
+}
+```
+- `role` : `"student"` | `"parent"` | `"admin"`
+- `class` : `string` si élève, `null` sinon
+- `token` : JWT HS256, durée 7 jours, payload `{ id, role }`
+
+Erreurs :
+| Code | Corps | Cause |
+|------|-------|-------|
+| 400 | `{ "error": "Champs requis : matricule, password" }` | champ manquant |
+| 401 | `{ "error": "Identifiants invalides" }` | matricule inconnu ou mot de passe incorrect |
+
+---
+
+### GET /api/me
+
+**En-tête requis :** `Authorization: Bearer <token>`
+
+Réponse **200** :
+```json
+{
+  "user": {
+    "id": 2,
+    "matricule": "VAT-24-0157",
+    "role": "student",
+    "full_name": "Aya Koné",
+    "class": "Terminale D",
+    "phone": "0701000157"
+  },
+  "balance": 5000
+}
+```
+- `balance` : entier FCFA, présent si `role === "student"`, `null` sinon
+
+Erreurs :
+| Code | Corps | Cause |
+|------|-------|-------|
+| 401 | `{ "error": "Token manquant" }` | en-tête Authorization absent |
+| 401 | `{ "error": "Token invalide ou expiré" }` | JWT invalide ou expiré |
+
+---
+
 ## Points de vigilance critiques
 
 1. **Atomicité** : débit solde + écriture transaction = 1 seule transaction SQL, toujours.
