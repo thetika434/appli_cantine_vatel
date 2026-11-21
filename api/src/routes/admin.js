@@ -72,7 +72,7 @@ router.get('/admin/dashboard', ...admin, async (req, res) => {
     });
   } catch (err) {
     console.error('GET /admin/dashboard', err);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: 'Erreur serveur', detail: err.message });
   }
 });
 
