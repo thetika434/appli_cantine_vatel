@@ -220,7 +220,56 @@ router.get('/transactions', ...student, async (req, res) => {
 
 // ─── POST /api/recharge/initiate ──────────────────────────────────────────────
 router.post('/recharge/initiate', ...student, async (req, res) => {
-  res.status(501).json({ error: 'Not implemented yet' });
+  const { amount, phone, channel } = req.body ?? {};
+
+  if (!amount || !phone || !channel) {
+    return res.status(400).json({ error: 'Champs requis : amount, phone, channel' });
+  }
+  if (!Number.isInteger(amount) || amount <= 0 || amount % 5 !== 0) {
+    return res.status(400).json({ error: 'Montant invalide' });
+  }
+  const CHANNELS = ['orangeCI', 'mtnCI', 'moovCI', 'waveCI'];
+  if (!CHANNELS.includes(channel)) {
+    return res.status(400).json({ error: 'Canal invalide' });
+  }
+
+  try {
+    const { v4: uuidv4 } = require('uuid');
+    const idempotencyKey = uuidv4();
+
+    // Appel Adullam
+    const aduRes = await fetch('https://api.adullam.dev/v1/payments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth': process.env.ADULLAM_KEY,
+        'x-idempotency-key': idempotencyKey,
+      },
+      body: JSON.stringify({ amount, phone, channel }),
+    });
+
+    const aduData = await aduRes.json();
+
+    if (!aduRes.ok) {
+      console.error('Adullam error', aduData);
+      return res.status(502).json({ error: 'Erreur paiement', detail: aduData });
+    }
+
+    const paymentId = aduData.id ?? aduData.payment_id ?? aduData.data?.id;
+
+    // Enregistrer la recharge en base
+    await pool.query(
+      `INSERT INTO recharges
+         (student_id, initiated_by, payment_id, idempotency_key, amount_fcfa, phone, channel)
+       VALUES ($1, $1, $2, $3, $4, $5, $6)`,
+      [req.user.id, paymentId, idempotencyKey, amount, phone, channel]
+    );
+
+    res.json({ payment_id: paymentId, status: 'pending' });
+  } catch (err) {
+    console.error('POST /recharge/initiate', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 module.exports = router;

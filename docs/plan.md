@@ -554,6 +554,41 @@ Réponse **200** :
 
 ---
 
+### POST /api/recharge/initiate
+
+**En-tête :** `Authorization: Bearer <token>` (rôle `student`)
+
+Requête :
+```json
+{ "amount": 5000, "phone": "0712345678", "channel": "orangeCI" }
+```
+- `amount` : entier FCFA > 0, multiple de 5
+- `channel` : `"orangeCI"` | `"mtnCI"` | `"moovCI"` | `"waveCI"`
+- Préfixe attendu : `07` → orangeCI, `05` → mtnCI, `01` → moovCI
+
+Réponse **200** :
+```json
+{ "payment_id": "pay_xxx", "status": "pending" }
+```
+
+Erreurs :
+| Code | Corps | Cause |
+|------|-------|-------|
+| 400 | `{ "error": "Champs requis : amount, phone, channel" }` | champ manquant |
+| 400 | `{ "error": "Montant invalide" }` | ≤ 0 ou non multiple de 5 |
+| 400 | `{ "error": "Canal invalide" }` | channel inconnu |
+
+---
+
+### POST /api/webhooks/adullam
+
+**Public, body brut (Buffer), en-tête `adullam-signature`.**
+
+Réponse toujours **200** (immédiat). Le crédit est traité de façon asynchrone.  
+Le webhook n'est jamais appelé depuis l'app mobile.
+
+---
+
 ### GET /api/menus/week
 
 **En-tête :** `Authorization: Bearer <token>` (rôle `student`)  
