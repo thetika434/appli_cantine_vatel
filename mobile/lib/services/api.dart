@@ -65,7 +65,10 @@ class ApiService implements AuthRepository {
     final token = await getToken();
     final resp = await _dio.get('/me',
         options: Options(headers: {'Authorization': 'Bearer $token'}));
-    return resp.data as Map<String, dynamic>;
+    final data = resp.data as Map<String, dynamic>;
+    final balance = data['balance'];
+    if (balance is int) studentBalance.value = balance;
+    return data;
   }
 
   Future<Map<String, dynamic>> getMenusWeek({String? date}) async {
@@ -88,6 +91,9 @@ class ApiService implements AuthRepository {
     final resp = await _dio.post('/reservations',
         data: {'dish_id': dishId},
         options: Options(headers: {'Authorization': 'Bearer $token'}));
+    try {
+      await getMe();
+    } catch (_) {}
     return resp.data as Map<String, dynamic>;
   }
 
@@ -153,6 +159,9 @@ class ApiService implements AuthRepository {
 }
 
 final appNavigatorKey = GlobalKey<NavigatorState>();
+
+// Solde de l'élève connecté, partagé entre les onglets.
+final studentBalance = ValueNotifier<int?>(null);
 
 class _AuthInterceptor extends Interceptor {
   @override

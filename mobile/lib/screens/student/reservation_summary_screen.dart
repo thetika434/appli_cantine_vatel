@@ -17,7 +17,25 @@ class ReservationSummaryScreen extends StatefulWidget {
 
 class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
   bool _loading = false;
+  bool _balanceFresh = false;
+  late int _balance = widget.balance;
   final _api = ApiService();
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshBalance();
+  }
+
+  Future<void> _refreshBalance() async {
+    try {
+      final me = await _api.getMe();
+      final b = me['balance'];
+      if (mounted) setState(() { if (b is int) _balance = b; _balanceFresh = true; });
+    } catch (_) {
+      if (mounted) setState(() => _balanceFresh = true);
+    }
+  }
 
   String _fmt(int v) {
     final s = v.toString();
@@ -75,7 +93,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
           ElevatedButton(
             onPressed: () {
               final total = widget.dish.priceFcfa * widget.qty;
-              final newBal = widget.balance - total;
+              final newBal = _balance - total;
               // pop summary → pop detail avec le nouveau solde
               Navigator.of(context).pop();
               Navigator.of(context).pop(newBal);
@@ -90,7 +108,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
   @override
   Widget build(BuildContext context) {
     final total = widget.dish.priceFcfa * widget.qty;
-    final newBalance = widget.balance - total;
+    final newBalance = _balance - total;
     final dateLabel = '${_dayLabel(widget.dish.serveDate)} · ${widget.dish.slotStart.substring(0,5)} – ${widget.dish.slotEnd.substring(0,5)}';
 
     return Scaffold(
@@ -132,7 +150,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
             ]),
           ),
           const SizedBox(height: 20),
-          _row('Solde', '${_fmt(widget.balance)} FCFA', bold: true),
+          _row('Solde', '${_fmt(_balance)} FCFA', bold: true),
           const Divider(height: 24, color: AppColors.surfaceHigh),
           _row('Repas', '– ${_fmt(total)} FCFA'),
           const Divider(height: 24, color: AppColors.surfaceHigh),
@@ -144,7 +162,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
               child: Text('Solde insuffisant.', style: GoogleFonts.inter(fontSize: 13, color: Colors.red), textAlign: TextAlign.center),
             ),
           ElevatedButton(
-            onPressed: (newBalance >= 0 && !_loading) ? _confirm : null,
+            onPressed: (_balanceFresh && newBalance >= 0 && !_loading) ? _confirm : null,
             child: _loading
               ? const SizedBox(height:20, width:20, child: CircularProgressIndicator(color:Colors.white, strokeWidth:2))
               : const Text('Confirmer'),

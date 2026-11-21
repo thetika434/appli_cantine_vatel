@@ -26,7 +26,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    studentBalance.addListener(_onBalance);
     _load();
+  }
+
+  @override
+  void dispose() {
+    studentBalance.removeListener(_onBalance);
+    super.dispose();
+  }
+
+  void _onBalance() {
+    final b = studentBalance.value;
+    if (b != null && mounted) setState(() => _balance = b);
   }
 
   Future<void> _load() async {
