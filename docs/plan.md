@@ -480,6 +480,80 @@ Erreurs :
 
 ---
 
+### POST /api/reservations
+
+**En-tête :** `Authorization: Bearer <token>` (rôle `student`)
+
+Requête :
+```json
+{ "dish_id": 1 }
+```
+
+Réponse **200** :
+```json
+{
+  "reservation": { "id": 1, "student_id": 2, "dish_id": 1, "status": "confirmed", "created_at": "..." },
+  "new_balance": 4000
+}
+```
+
+Erreurs :
+| Code | Corps | Cause |
+|------|-------|-------|
+| 400 | `{ "error": "dish_id requis" }` | corps manquant |
+| 404 | `{ "error": "Plat introuvable" }` | dish_id inconnu |
+| 409 | `{ "error": "Déjà réservé" }` | réservation doublon |
+| 409 | `{ "error": "Plat épuisé" }` | quantity = 0 |
+| 422 | `{ "error": "Solde insuffisant" }` | balance < price_fcfa |
+
+---
+
+### GET /api/reservations
+
+**En-tête :** `Authorization: Bearer <token>` (rôle `student`)
+
+Réponse **200** :
+```json
+{
+  "reservations": [
+    {
+      "id": 1,
+      "dish_id": 1,
+      "dish_name": "Alloco poulet braisé",
+      "price_fcfa": 1000,
+      "serve_date": "2026-11-24",
+      "status": "confirmed",
+      "created_at": "..."
+    }
+  ]
+}
+```
+
+---
+
+### GET /api/transactions
+
+**En-tête :** `Authorization: Bearer <token>` (rôle `student`)  
+**Query param :** `?type=debit` | `?type=credit` (optionnel, défaut = tous)
+
+Réponse **200** :
+```json
+{
+  "transactions": [
+    {
+      "id": 1,
+      "type": "debit",
+      "amount_fcfa": 1000,
+      "label": "Alloco poulet braisé",
+      "reference": "1",
+      "created_at": "..."
+    }
+  ]
+}
+```
+
+---
+
 ### GET /api/menus/week
 
 **En-tête :** `Authorization: Bearer <token>` (rôle `student`)  
