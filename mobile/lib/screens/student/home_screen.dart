@@ -113,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _balanceCard() => Container(
     margin: const EdgeInsets.fromLTRB(16,16,16,0),
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     decoration: const BoxDecoration(
       image: DecorationImage(image: AssetImage('assets/images/cadre_orange.png'), fit: BoxFit.fill),
     ),
@@ -125,8 +125,8 @@ class _HomeScreenState extends State<HomeScreen> {
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              _balanceVisible ? '${_formatFcfa(_balance)} FCFA' : '• • • • •',
-              style: GoogleFonts.poppins(fontSize:38, fontWeight:FontWeight.w800, color:Colors.white),
+              _balanceVisible ? '${_formatFcfa(_balance)} F' : '• • • • •',
+              style: GoogleFonts.poppins(fontSize:50, fontWeight:FontWeight.w800, color:Colors.white, height: 1.1),
             ),
           ),
         ),
