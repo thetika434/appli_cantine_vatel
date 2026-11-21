@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import '../services/api.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthRepository repo;
@@ -30,7 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    final matricule = _matriculeCtrl.text.trim();
+    final raw = _matriculeCtrl.text.trim();
+    final matricule = _isParent ? normalizeCiPhone(raw) : raw.toUpperCase();
     final password = _passwordCtrl.text;
     if (matricule.isEmpty || password.isEmpty) {
       setState(() => _error = 'Remplis tous les champs.');
@@ -95,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              _RoleToggle(
+              RoleToggle(
                 isParent: _isParent,
                 onChanged: (v) {
                   setState(() {
@@ -205,14 +207,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Première fois ? ',
+                    'Pas encore de compte ? ',
                     style: GoogleFonts.inter(
                         fontSize: 14, color: AppColors.textSecondary),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () => Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => RegisterScreen(repo: widget.repo))),
                     child: Text(
-                      'Activer mon compte',
+                      "S'inscrire",
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         color: AppColors.green,
@@ -231,11 +234,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class _RoleToggle extends StatelessWidget {
+class RoleToggle extends StatelessWidget {
   final bool isParent;
   final ValueChanged<bool> onChanged;
 
-  const _RoleToggle({required this.isParent, required this.onChanged});
+  const RoleToggle({super.key, required this.isParent, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {

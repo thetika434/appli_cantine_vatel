@@ -7,8 +7,18 @@ const _baseUrl = 'https://cantine-vatel.duckdns.org/api';
 const _tokenKey = 'auth_token';
 const _userKey = 'auth_user';
 
+// Format attendu par le serveur pour les parents : +225 suivi des 10 chiffres.
+String normalizeCiPhone(String input) {
+  final p = input.replaceAll(RegExp(r'[\s.\-]'), '');
+  if (p.startsWith('+')) return p;
+  if (p.startsWith('225') && p.length == 13) return '+$p';
+  if (p.length == 10 && p.startsWith('0')) return '+225$p';
+  return p;
+}
+
 abstract class AuthRepository {
   Future<Map<String, dynamic>> login(String matricule, String password);
+  Future<Map<String, dynamic>> register(Map<String, dynamic> body);
   Future<void> logout();
   Future<String?> getToken();
 }
@@ -33,6 +43,17 @@ class ApiService implements AuthRepository {
       'matricule': matricule,
       'password': password,
     });
+    final token = resp.data['token'] as String;
+    final user = resp.data['user'] as Map<String, dynamic>;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_tokenKey, token);
+    await prefs.setString(_userKey, _encodeUser(user));
+    return resp.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> register(Map<String, dynamic> body) async {
+    final resp = await _dio.post('/auth/register', data: body);
     final token = resp.data['token'] as String;
     final user = resp.data['user'] as Map<String, dynamic>;
     final prefs = await SharedPreferences.getInstance();
@@ -214,6 +235,22 @@ class FakeAuthRepository implements AuthRepository {
         data: {'error': 'Identifiants invalides'},
       ),
     );
+  }
+
+  @override
+  Future<Map<String, dynamic>> register(Map<String, dynamic> body) async {
+    await Future.delayed(const Duration(milliseconds: 800));
+    final role = body['role'] as String;
+    _token = 'fake_token_$role';
+    return {
+      'token': _token,
+      'user': {
+        'id': 99,
+        'role': role,
+        'full_name': body['full_name'],
+        'class': role == 'student' ? body['class'] : null,
+      },
+    };
   }
 
   @override
