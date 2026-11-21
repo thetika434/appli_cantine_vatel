@@ -237,6 +237,9 @@ router.post('/recharge/initiate', ...student, async (req, res) => {
     const { v4: uuidv4 } = require('uuid');
     const idempotencyKey = uuidv4();
 
+    // Normaliser le numéro au format +225XXXXXXXXX attendu par Adullam
+    const normalizedPhone = phone.startsWith('+') ? phone : `+225${phone.replace(/^0/, '')}`;
+
     // Appel Adullam
     const aduRes = await fetch('https://api.adullam.dev/v1/payments', {
       method: 'POST',
@@ -245,7 +248,13 @@ router.post('/recharge/initiate', ...student, async (req, res) => {
         'x-auth': process.env.ADULLAM_KEY,
         'x-idempotency-key': idempotencyKey,
       },
-      body: JSON.stringify({ amount, phone, channel }),
+      body: JSON.stringify({
+        amount,
+        currency: 'xof',
+        customer_phone: normalizedPhone,
+        channel,
+        description: 'Recharge cantine Vatel',
+      }),
     });
 
     const aduData = await aduRes.json();

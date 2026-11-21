@@ -128,6 +128,8 @@ router.post('/parent/recharge', ...parent, async (req, res) => {
     const { v4: uuidv4 } = require('uuid');
     const idempotencyKey = uuidv4();
 
+    const normalizedPhone = phone.startsWith('+') ? phone : `+225${phone.replace(/^0/, '')}`;
+
     const aduRes = await fetch('https://api.adullam.dev/v1/payments', {
       method: 'POST',
       headers: {
@@ -135,7 +137,13 @@ router.post('/parent/recharge', ...parent, async (req, res) => {
         'x-auth': process.env.ADULLAM_KEY,
         'x-idempotency-key': idempotencyKey,
       },
-      body: JSON.stringify({ amount, phone, channel }),
+      body: JSON.stringify({
+        amount,
+        currency: 'xof',
+        customer_phone: normalizedPhone,
+        channel,
+        description: 'Recharge cantine Vatel',
+      }),
     });
 
     const aduData = await aduRes.json();
