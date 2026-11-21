@@ -691,6 +691,258 @@ Erreurs :
 
 ---
 
+---
+
+## Contrat API — référence session admin (React)
+
+> Toutes les routes admin nécessitent `Authorization: Bearer <token>` avec un compte `role: "admin"`.  
+> Identifiants de démo : `admin@vatel.ci` / `test1234`  
+> Base URL : `https://cantine-vatel.duckdns.org/api`
+
+---
+
+### POST /api/auth/login — connexion admin
+
+Requête :
+```json
+{ "matricule": "admin@vatel.ci", "password": "test1234" }
+```
+
+Réponse **200** :
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "user": { "id": 1, "role": "admin", "full_name": "M. Traoré Admin", "class": null }
+}
+```
+Stocker le token dans `localStorage`, l'envoyer dans toutes les requêtes suivantes.
+
+---
+
+### GET /api/admin/dashboard
+
+**Query param :** `?date=2026-11-21` (optionnel, défaut = aujourd'hui)
+
+Réponse **200** :
+```json
+{
+  "date": "2026-11-21",
+  "today_orders": "3",
+  "revenue_fcfa": "3200",
+  "served": "1",
+  "cancelled": "0",
+  "weekly": [
+    { "date": "2026-11-15", "revenue_fcfa": "0", "orders": "0" },
+    { "date": "2026-11-16", "revenue_fcfa": "0", "orders": "0" },
+    { "date": "2026-11-17", "revenue_fcfa": "0", "orders": "0" },
+    { "date": "2026-11-18", "revenue_fcfa": "0", "orders": "0" },
+    { "date": "2026-11-19", "revenue_fcfa": "0", "orders": "0" },
+    { "date": "2026-11-20", "revenue_fcfa": "3000", "orders": "2" },
+    { "date": "2026-11-21", "revenue_fcfa": "3200", "orders": "3" }
+  ],
+  "top_dishes": [
+    { "name": "Alloco poulet braisé", "orders": "2" },
+    { "name": "Igname frite sauce graine", "orders": "1" }
+  ],
+  "recent_orders": [
+    {
+      "id": 3,
+      "full_name": "Aya Koné",
+      "class": "Terminale D",
+      "dish_name": "Igname frite sauce graine",
+      "price_fcfa": 1200,
+      "status": "confirmed",
+      "created_at": "2026-11-21T12:02:36.875Z"
+    }
+  ]
+}
+```
+⚠️ `today_orders`, `revenue_fcfa`, `served`, `cancelled`, `orders` dans weekly et top_dishes sont des **strings** (retour PostgreSQL COUNT/SUM) — les parser avec `parseInt()` / `parseFloat()` côté React.
+
+---
+
+### GET /api/admin/orders
+
+**Query param :** `?date=2026-11-21` (optionnel, défaut = aujourd'hui)
+
+Réponse **200** :
+```json
+{
+  "date": "2026-11-21",
+  "summary": [
+    {
+      "dish_id": 1,
+      "name": "Alloco poulet braisé",
+      "price_fcfa": 1000,
+      "to_serve": "2",
+      "served": "0",
+      "cancelled": "0"
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "full_name": "Aya Koné",
+      "class": "Terminale D",
+      "matricule": "VAT-24-0157",
+      "dish_name": "Alloco poulet braisé",
+      "price_fcfa": 1000,
+      "status": "confirmed",
+      "created_at": "2026-11-21T11:49:36.875Z"
+    }
+  ]
+}
+```
+- `status` : `"confirmed"` | `"served"` | `"cancelled"`
+- `to_serve`, `served`, `cancelled` sont des strings → `parseInt()`
+
+---
+
+### PATCH /api/admin/orders/:id/serve
+
+Marque une réservation comme servie (`confirmed` → `served`).
+
+Pas de corps. Réponse **200** :
+```json
+{
+  "reservation": {
+    "id": 1, "student_id": 2, "dish_id": 1,
+    "status": "served", "created_at": "..."
+  }
+}
+```
+
+Erreurs :
+| Code | Corps | Cause |
+|------|-------|-------|
+| 404 | `{ "error": "Réservation introuvable ou déjà traitée" }` | id inconnu ou statut ≠ confirmed |
+
+---
+
+### PATCH /api/admin/orders/:id/cancel
+
+Annule une réservation et **rembourse atomiquement** le solde de l'élève.
+
+Pas de corps. Réponse **200** :
+```json
+{
+  "reservation": {
+    "id": 1, "student_id": 2, "dish_id": 1, "status": "cancelled"
+  }
+}
+```
+
+Erreurs :
+| Code | Corps | Cause |
+|------|-------|-------|
+| 404 | `{ "error": "Réservation introuvable ou déjà traitée" }` | id inconnu ou statut ≠ confirmed |
+
+---
+
+### GET /api/admin/dishes
+
+Retourne tous les plats de la semaine (y compris `visible: false`).
+
+**Query param :** `?week=2026-11-24` (optionnel, défaut = semaine courante)
+
+Réponse **200** :
+```json
+{
+  "week_start": "2026-11-24",
+  "week_end": "2026-11-28",
+  "days": [
+    {
+      "date": "2026-11-24",
+      "dishes": [
+        {
+          "id": 1,
+          "name": "Alloco poulet braisé",
+          "description": "Bananes plantain frites avec poulet braisé",
+          "photo_url": null,
+          "price_fcfa": 1000,
+          "serve_date": "2026-11-24",
+          "slot_start": "12:00:00",
+          "slot_end": "13:30:00",
+          "quantity": 28,
+          "visible": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### POST /api/admin/dishes
+
+Crée un nouveau plat.
+
+Requête :
+```json
+{
+  "name": "Riz sauce graine",
+  "description": "Riz blanc avec sauce graine et poisson fumé",
+  "photo_url": null,
+  "price_fcfa": 1000,
+  "serve_date": "2026-11-25",
+  "quantity": 50,
+  "visible": true
+}
+```
+- Champs obligatoires : `name`, `price_fcfa`, `serve_date`, `quantity`
+- `price_fcfa` : entier > 0, multiple de 5
+- `visible` : `true` par défaut si absent
+
+Réponse **201** :
+```json
+{ "dish": { "id": 10, "name": "Riz sauce graine", ... } }
+```
+
+Erreurs :
+| Code | Corps | Cause |
+|------|-------|-------|
+| 400 | `{ "error": "Champs requis : name, price_fcfa, serve_date, quantity" }` | champ manquant |
+| 400 | `{ "error": "price_fcfa invalide" }` | ≤ 0 ou non multiple de 5 |
+
+---
+
+### PUT /api/admin/dishes/:id
+
+Met à jour partiellement un plat (seuls les champs envoyés sont modifiés).
+
+Requête (tous les champs sont optionnels) :
+```json
+{ "quantity": 45, "visible": false }
+```
+Champs modifiables : `name`, `description`, `photo_url`, `price_fcfa`, `serve_date`, `slot_start`, `slot_end`, `quantity`, `visible`
+
+Réponse **200** :
+```json
+{ "dish": { "id": 1, "name": "Alloco poulet braisé", "quantity": 45, "visible": false, ... } }
+```
+
+Erreurs :
+| Code | Corps | Cause |
+|------|-------|-------|
+| 400 | `{ "error": "Aucun champ à mettre à jour" }` | corps vide |
+| 404 | `{ "error": "Plat introuvable" }` | id inconnu |
+
+---
+
+### DELETE /api/admin/dishes/:id
+
+Supprime définitivement un plat.
+
+Réponse **204** (pas de corps).
+
+Erreurs :
+| Code | Corps | Cause |
+|------|-------|-------|
+| 404 | `{ "error": "Plat introuvable" }` | id inconnu |
+
+---
+
 ## Points de vigilance critiques
 
 1. **Atomicité** : débit solde + écriture transaction = 1 seule transaction SQL, toujours.
