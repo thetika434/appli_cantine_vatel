@@ -1,5 +1,11 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { getOrders, markServed, markCancelled, formatFCFA, todayISO, formatDateLong } from '../services/api.js'
+
+function addDaysToISO(iso, n) {
+  const d = new Date(iso + 'T12:00:00')
+  d.setDate(d.getDate() + n)
+  return d.toISOString().slice(0, 10)
+}
 
 const TABS = [
   { key: 'all',       label: 'Toutes'   },
@@ -22,12 +28,31 @@ export default function Orders() {
   const [error, setError]     = useState('')
   const [tab, setTab]         = useState('all')
   const [search, setSearch]   = useState('')
+  const autoAdvanced          = useRef(false)
+
+  async function findNextDateWithOrders(fromDate) {
+    for (let i = 1; i <= 21; i++) {
+      const next = addDaysToISO(fromDate, i)
+      try {
+        const d = await getOrders(next)
+        if ((d?.orders ?? []).length > 0) { setDate(next); return }
+      } catch {}
+    }
+  }
 
   useEffect(() => {
     setLoading(true)
     setError('')
     getOrders(date)
-      .then(d => { setData(d); setOrders(d.orders ?? []) })
+      .then(d => {
+        setData(d)
+        const list = d.orders ?? []
+        setOrders(list)
+        if (list.length === 0 && !autoAdvanced.current) {
+          autoAdvanced.current = true
+          findNextDateWithOrders(date)
+        }
+      })
       .catch(err => setError(err.message || 'Erreur de chargement'))
       .finally(() => setLoading(false))
   }, [date])
@@ -168,7 +193,8 @@ export default function Orders() {
             </div>
 
             {/* Table */}
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
                   {['N°', 'Élève', 'Plat', 'Créneau', 'Montant', 'Statut', ''].map(h => (
@@ -225,6 +251,7 @@ export default function Orders() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </>
       )}
