@@ -23,20 +23,18 @@ router.get('/admin/dashboard', ...admin, async (req, res) => {
 
     // Revenus des 7 derniers jours
     const { rows: weekly } = await pool.query(
-      `SELECT d.serve_date::text AS date,
-              COALESCE(SUM(d2.price_fcfa) FILTER (WHERE r.status != 'cancelled'), 0) AS revenue_fcfa,
-              COUNT(*) FILTER (WHERE r.status != 'cancelled') AS orders
+      `SELECT gs.day::text AS date,
+              COALESCE(SUM(d.price_fcfa) FILTER (WHERE r.status != 'cancelled'), 0) AS revenue_fcfa,
+              COUNT(r.id) FILTER (WHERE r.status != 'cancelled') AS orders
        FROM generate_series(
          (DATE $1 - INTERVAL '6 days')::date,
          $1::date,
          '1 day'::interval
-       ) d(serve_date)
-       LEFT JOIN reservations r ON r.dish_id IN (
-         SELECT id FROM dishes WHERE serve_date = d.serve_date::date AND visible = TRUE
-       )
-       LEFT JOIN dishes d2 ON d2.id = r.dish_id
-       GROUP BY d.serve_date
-       ORDER BY d.serve_date`,
+       ) gs(day)
+       LEFT JOIN dishes d ON d.serve_date = gs.day AND d.visible = TRUE
+       LEFT JOIN reservations r ON r.dish_id = d.id
+       GROUP BY gs.day
+       ORDER BY gs.day`,
       [date]
     );
 
