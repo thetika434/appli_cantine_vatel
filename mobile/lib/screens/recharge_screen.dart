@@ -18,7 +18,7 @@ class _RechargeScreenState extends State<RechargeScreen> {
   static const _presets = [1000, 2000, 5000, 10000];
   int? _selected = 5000;
   final _customCtrl = TextEditingController();
-  String _channel = 'orangeCI';
+  final String _channel = 'waveCI';
   bool _loading = false;
   final _api = ApiService();
 
@@ -138,11 +138,7 @@ class _RechargeScreenState extends State<RechargeScreen> {
             ),
           ),
           const SizedBox(height:20),
-          Row(children:[
-            Expanded(child:_operatorTile('orangeCI', 'assets/images/orange_money.jpg', 'Orange Money')),
-            const SizedBox(width:12),
-            Expanded(child:_operatorTile('waveCI', 'assets/images/wave.png', 'Wave')),
-          ]),
+          _operatorTile('assets/images/wave.png', 'Wave'),
           const SizedBox(height:16),
           Row(mainAxisAlignment:MainAxisAlignment.spaceBetween, children:[
             Text('Nouveau solde', style:GoogleFonts.inter(fontSize:14, color:AppColors.textSecondary)),
@@ -163,25 +159,21 @@ class _RechargeScreenState extends State<RechargeScreen> {
     );
   }
 
-  Widget _operatorTile(String channel, String asset, String label) {
-    final active = _channel == channel;
-    return GestureDetector(
-      onTap: () => setState(() => _channel = channel),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration:BoxDecoration(
-          color: AppColors.surface,
-          borderRadius:BorderRadius.circular(14),
-          border:Border.all(color: active ? AppColors.green : Colors.transparent, width:2),
-        ),
-        child:Row(children:[
-          ClipRRect(borderRadius:BorderRadius.circular(8),
-            child:Image.asset(asset, width:36, height:36, fit:BoxFit.contain,
-              errorBuilder:(_,__,___) => Container(width:36, height:36, color:AppColors.surfaceHigh))),
-          const SizedBox(width:8),
-          Text(label, style:GoogleFonts.poppins(fontSize:13, fontWeight:FontWeight.w600, color:AppColors.textPrimary)),
-        ]),
+  Widget _operatorTile(String asset, String label) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration:BoxDecoration(
+        color: AppColors.surface,
+        borderRadius:BorderRadius.circular(14),
+        border:Border.all(color: AppColors.green, width:2),
       ),
+      child:Row(children:[
+        ClipRRect(borderRadius:BorderRadius.circular(8),
+          child:Image.asset(asset, width:36, height:36, fit:BoxFit.contain,
+            errorBuilder:(_,__,___) => Container(width:36, height:36, color:AppColors.surfaceHigh))),
+        const SizedBox(width:8),
+        Text(label, style:GoogleFonts.poppins(fontSize:13, fontWeight:FontWeight.w600, color:AppColors.textPrimary)),
+      ]),
     );
   }
 }
