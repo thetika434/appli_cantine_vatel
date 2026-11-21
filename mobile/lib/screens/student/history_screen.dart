@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme.dart';
 import '../../services/api.dart';
+import '../../models/dish.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -26,7 +27,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final r = await _api.getTransactions();
       final list = r['transactions'] as List<dynamic>? ?? [];
       if (mounted) setState(() {
-        _all = list.map((e) => e as Map<String, dynamic>).toList();
+        _all = list.map((e) => transactionView(e as Map<String, dynamic>)).toList();
         _loading = false;
       });
     } catch (_) {
@@ -35,14 +36,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   List<Map<String, dynamic>> _fakeData() => [
-    {'id':1,'type':'debit','amount_fcfa':1000,'label':'Alloco poulet braisé','created_at':'Aujourd\'hui','local_asset':'assets/images/alloco_poulet.jpg'},
-    {'id':2,'type':'debit','amount_fcfa':1200,'label':'Foutou banane','created_at':'Jeu. 19','local_asset':'assets/images/foutou_banane.jpg'},
-    {'id':3,'type':'credit','amount_fcfa':5000,'label':'Recharge','created_at':'Mer. 18','local_asset':null},
-    {'id':4,'type':'debit','amount_fcfa':1000,'label':'Riz sauce tomate poulet','created_at':'Mer. 18','local_asset':'assets/images/riz_sauce_tomate.jpg'},
-    {'id':5,'type':'debit','amount_fcfa':1500,'label':'Attiéké poisson braisé','created_at':'Mar. 17','local_asset':'assets/images/attieke_poisson.jpg'},
-    {'id':6,'type':'debit','amount_fcfa':1000,'label':'Riz sauce arachide','created_at':'Lun. 16','local_asset':'assets/images/riz_sauce_arachide.jpg'},
-    {'id':7,'type':'credit','amount_fcfa':2000,'label':'Recharge','created_at':'Ven. 13','local_asset':null},
-    {'id':8,'type':'debit','amount_fcfa':1200,'label':'Riz cantonais poulet','created_at':'Ven. 13','local_asset':'assets/images/riz_cantonais.jpg'},
+    {'id':1,'type':'debit','amount_fcfa':1000,'label':'Alloco poulet braisé','date':'Aujourd\'hui','local_asset':'assets/images/alloco_poulet.jpg'},
+    {'id':2,'type':'debit','amount_fcfa':1200,'label':'Foutou banane','date':'Jeu. 19','local_asset':'assets/images/foutou_banane.jpg'},
+    {'id':3,'type':'credit','amount_fcfa':5000,'label':'Recharge','date':'Mer. 18','local_asset':null},
+    {'id':4,'type':'debit','amount_fcfa':1000,'label':'Riz sauce tomate poulet','date':'Mer. 18','local_asset':'assets/images/riz_sauce_tomate.jpg'},
+    {'id':5,'type':'debit','amount_fcfa':1500,'label':'Attiéké poisson braisé','date':'Mar. 17','local_asset':'assets/images/attieke_poisson.jpg'},
+    {'id':6,'type':'debit','amount_fcfa':1000,'label':'Riz sauce arachide','date':'Lun. 16','local_asset':'assets/images/riz_sauce_arachide.jpg'},
+    {'id':7,'type':'credit','amount_fcfa':2000,'label':'Recharge','date':'Ven. 13','local_asset':null},
+    {'id':8,'type':'debit','amount_fcfa':1200,'label':'Riz cantonais poulet','date':'Ven. 13','local_asset':'assets/images/riz_cantonais.jpg'},
   ];
 
   List<Map<String, dynamic>> get _filtered {
@@ -108,7 +109,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final isCredit = tx['type'] == 'credit';
     final amount = tx['amount_fcfa'] as int? ?? 0;
     final label = tx['label'] as String? ?? '';
-    final date = tx['created_at'] as String? ?? '';
+    final date = tx['date'] as String? ?? '';
     final asset = tx['local_asset'] as String?;
 
     return Padding(

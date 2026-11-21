@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme.dart';
 import '../../services/api.dart';
+import '../../models/dish.dart';
 
 class ParentHistoryScreen extends StatefulWidget {
   const ParentHistoryScreen({super.key});
@@ -17,7 +18,10 @@ class _ParentHistoryScreenState extends State<ParentHistoryScreen> {
   bool _loading = true;
   final _api = ApiService();
 
-  final _childLabels = ['Tous','Aya','Yao'];
+  List<String> get _childLabels => [
+    'Tous',
+    ...{for (final t in _all) (t['student_name'] as String? ?? '').split(' ').first}.where((n) => n.isNotEmpty),
+  ];
   final _typeLabels = ['Tout','Repas','Recharges'];
 
   @override
@@ -28,7 +32,7 @@ class _ParentHistoryScreenState extends State<ParentHistoryScreen> {
       final r = await _api.getParentTransactions();
       final list = r['transactions'] as List<dynamic>? ?? [];
       if (mounted) setState(() {
-        _all = list.map((e) => e as Map<String,dynamic>).toList();
+        _all = list.map((e) => transactionView(e as Map<String,dynamic>)).toList();
         _loading = false;
       });
     } catch (_) {
@@ -49,8 +53,11 @@ class _ParentHistoryScreenState extends State<ParentHistoryScreen> {
 
   List<Map<String,dynamic>> get _filtered {
     var list = _all;
-    if (_childTab == 1) list = list.where((e) => (e['student_name'] as String? ?? '').contains('Aya')).toList();
-    if (_childTab == 2) list = list.where((e) => (e['student_name'] as String? ?? '').contains('Yao')).toList();
+    final labels = _childLabels;
+    if (_childTab > 0 && _childTab < labels.length) {
+      final name = labels[_childTab];
+      list = list.where((e) => (e['student_name'] as String? ?? '').split(' ').first == name).toList();
+    }
     if (_typeTab == 1) list = list.where((e) => e['type'] == 'debit').toList();
     if (_typeTab == 2) list = list.where((e) => e['type'] == 'credit').toList();
     return list;

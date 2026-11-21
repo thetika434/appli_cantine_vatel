@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme.dart';
 import '../../services/api.dart';
+import '../../models/dish.dart';
 import '../recharge_screen.dart';
 import 'child_detail_screen.dart';
 
@@ -32,17 +33,14 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
       }
       final r = await _api.getParentChildren();
       final list = r['children'] as List<dynamic>? ?? [];
-      List<_Child> children = list.map((c) {
-        final s = c['student'] as Map<String, dynamic>;
-        return _Child(
-          id: s['id'] as int,
-          name: s['full_name'] as String,
-          classe: s['class'] as String? ?? '',
-          balance: c['balance'] as int? ?? 0,
-        );
-      }).toList();
+      List<_Child> children = list.map((c) => _Child(
+        id: c['id'] as int,
+        name: c['full_name'] as String,
+        classe: c['class'] as String? ?? '',
+        balance: c['balance'] as int? ?? 0,
+      )).toList();
       final txR = await _api.getParentTransactions();
-      final txList = (txR['transactions'] as List<dynamic>? ?? []).take(5).map((e) => e as Map<String, dynamic>).toList();
+      final txList = (txR['transactions'] as List<dynamic>? ?? []).take(5).map((e) => transactionView(e as Map<String, dynamic>)).toList();
       if (mounted) setState(() { _children = children; _recent = txList; _loading = false; });
     } catch (_) {
       if (mounted) setState(() {
