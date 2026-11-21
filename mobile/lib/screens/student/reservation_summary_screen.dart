@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:dio/dio.dart';
 import '../../theme.dart';
 import '../../models/dish.dart';
 import '../../services/api.dart';
@@ -28,16 +29,28 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
     return buf.toString();
   }
 
+  String _dayLabel(String serveDate) {
+    final d = DateTime.tryParse(serveDate);
+    if (d == null || serveDate == isoDate(DateTime.now())) return "Aujourd'hui";
+    const days = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+    const months = ['jan.','fév.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+    return '${days[d.weekday - 1]} ${d.day} ${months[d.month - 1]}';
+  }
+
   Future<void> _confirm() async {
     setState(() => _loading = true);
     try {
       await _api.reserve(widget.dish.id);
       if (!mounted) return;
       _showSuccess();
-    } catch (_) {
+    } on DioException catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showSuccess();
+      final data = e.response?.data;
+      final msg = (data is Map && data['error'] != null)
+          ? data['error'].toString()
+          : 'Impossible de joindre le serveur. Vérifiez votre connexion internet.';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
   }
 
@@ -78,7 +91,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
   Widget build(BuildContext context) {
     final total = widget.dish.priceFcfa * widget.qty;
     final newBalance = widget.balance - total;
-    final dateLabel = "Aujourd'hui · ${widget.dish.slotStart.substring(0,5)} – ${widget.dish.slotEnd.substring(0,5)}";
+    final dateLabel = '${_dayLabel(widget.dish.serveDate)} · ${widget.dish.slotStart.substring(0,5)} – ${widget.dish.slotEnd.substring(0,5)}';
 
     return Scaffold(
       backgroundColor: AppColors.background,

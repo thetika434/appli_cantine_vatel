@@ -17,9 +17,9 @@ class _MenusScreenState extends State<MenusScreen> {
   List<_DayData> _week = [];
   int _selectedDay = 0;
   bool _loading = true;
-  final int _balance = 4500;
+  int _balance = 0;
 
-  static const _dayLabels = ['Lun','Mar','Mer','Jeu','Ven'];
+  static const _dayLabels = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
   static const _months = ['jan.','fév.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
 
   @override
@@ -30,22 +30,29 @@ class _MenusScreenState extends State<MenusScreen> {
 
   Future<void> _load() async {
     try {
-      final menus = await _api.getMenusWeek();
-      final days = menus['days'] as List<dynamic>? ?? [];
-      final today = DateTime.now();
-      final todayStr = '${today.year}-${today.month.toString().padLeft(2,'0')}-${today.day.toString().padLeft(2,'0')}';
-      List<_DayData> week = days.map((d) {
-        final date = d['date'] as String;
-        final dishes = (d['dishes'] as List<dynamic>? ?? [])
+      final ref = menuReferenceDate();
+      final me = await _api.getMe();
+      final menus = await _api.getMenusWeek(date: isoDate(ref));
+      final byDate = <String, List<Dish>>{};
+      for (final d in menus['days'] as List<dynamic>? ?? []) {
+        byDate[d['date'] as String] = (d['dishes'] as List<dynamic>? ?? [])
             .map((x) => Dish.fromJson(x as Map<String, dynamic>))
             .toList();
-        return _DayData(date: date, dishes: dishes);
-      }).toList();
-      int sel = 0;
-      for (int i=0; i<week.length; i++) {
-        if (week[i].date == todayStr) { sel = i; break; }
       }
-      if (mounted) setState(() { _week = week; _selectedDay = sel; _loading = false; });
+      final mon = _monday(ref);
+      final week = List.generate(5, (i) {
+        final ds = isoDate(mon.add(Duration(days: i)));
+        return _DayData(date: ds, dishes: byDate[ds] ?? []);
+      });
+      final sel = week.indexWhere((d) => d.date == isoDate(ref));
+      if (mounted) {
+        setState(() {
+          _week = week;
+          _selectedDay = sel < 0 ? 0 : sel;
+          _balance = (me['balance'] as int?) ?? 0;
+          _loading = false;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() { _week = _fakeWeek(); _selectedDay = _todayIndex(); _loading = false; });
     }
@@ -108,6 +115,9 @@ class _MenusScreenState extends State<MenusScreen> {
           Expanded(
             child: _loading
               ? const Center(child: CircularProgressIndicator())
+              : dishes.isEmpty
+              ? Center(child: Text('Pas de menu publié pour ce jour.',
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)))
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(16,8,16,24),
                   itemCount: dishes.length,
@@ -129,7 +139,7 @@ class _MenusScreenState extends State<MenusScreen> {
       itemBuilder: (_, i) {
         final active = i == _selectedDay;
         final num = _dayNum(_week[i].date);
-        final label = _dayLabels[i.clamp(0,4)];
+        final label = _dayLabels[DateTime.parse(_week[i].date).weekday - 1];
         return GestureDetector(
           onTap: () => setState(() => _selectedDay = i),
           child: AnimatedContainer(
@@ -154,7 +164,10 @@ class _MenusScreenState extends State<MenusScreen> {
 
   Widget _dishRow(Dish dish) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder:(_)=>DishDetailScreen(dish:dish, balance:_balance))),
+      onTap: () async {
+        final result = await Navigator.push(context, MaterialPageRoute(builder:(_)=>DishDetailScreen(dish:dish, balance:_balance)));
+        if (result is int && mounted) _load();
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom:10),
         padding: const EdgeInsets.all(10),

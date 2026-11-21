@@ -19,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _balance = 0;
   String _userName = '';
   List<Dish> _todayDishes = [];
+  String? _menuDate;
   bool _loading = true;
   final _api = ApiService();
 
@@ -39,21 +40,22 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       final me = await _api.getMe();
       _balance = (me['balance'] as int?) ?? 0;
-      final today = DateTime.now();
-      final dateStr = '${today.year}-${today.month.toString().padLeft(2,'0')}-${today.day.toString().padLeft(2,'0')}';
-      final menus = await _api.getMenusWeek(date: dateStr);
+      final todayStr = isoDate(DateTime.now());
+      final menus = await _api.getMenusWeek(date: isoDate(menuReferenceDate()));
       final days = menus['days'] as List<dynamic>? ?? [];
       List<Dish> dishes = [];
+      String? menuDate;
       for (final d in days) {
-        final dayDate = (d['date'] as String? ?? '');
-        if (dayDate == dateStr) {
+        final dayDate = d['date'] as String? ?? '';
+        if (dayDate.compareTo(todayStr) >= 0) {
           dishes = (d['dishes'] as List<dynamic>? ?? [])
               .map((x) => Dish.fromJson(x as Map<String, dynamic>))
               .toList();
+          menuDate = dayDate;
           break;
         }
       }
-      if (mounted) setState(() { _todayDishes = dishes; _loading = false; });
+      if (mounted) setState(() { _todayDishes = dishes; _menuDate = menuDate; _loading = false; });
     } catch (_) {
       if (mounted) setState(() { _loading = false; _todayDishes = _fakeDishes(); _balance = 5000; });
     }
@@ -92,7 +94,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (hero != null) ...[
                     SliverToBoxAdapter(child: _sectionHeader()),
                     SliverToBoxAdapter(child: _heroCard(hero)),
-                  ],
+                  ] else
+                    SliverToBoxAdapter(child: _emptyMenu()),
                   if (others.isNotEmpty) ...[
                     SliverToBoxAdapter(
                       child: Padding(
@@ -175,15 +178,30 @@ class _HomeScreenState extends State<HomeScreen> {
     ]),
   );
 
+  Widget _emptyMenu() => Container(
+    margin: const EdgeInsets.fromLTRB(16,20,16,0),
+    padding: const EdgeInsets.all(24),
+    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
+    child: Column(children: [
+      const Icon(Icons.restaurant_menu_outlined, size: 40, color: AppColors.textSecondary),
+      const SizedBox(height: 12),
+      Text('Aucun menu publié', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+      const SizedBox(height: 4),
+      Text('Les prochains plats apparaîtront ici dès que la cantine les aura publiés.',
+        style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary), textAlign: TextAlign.center),
+    ]),
+  );
+
   Widget _sectionHeader() {
-    final now = DateTime.now();
+    final date = _menuDate != null ? DateTime.parse(_menuDate!) : DateTime.now();
+    final isToday = _menuDate == null || _menuDate == isoDate(DateTime.now());
     final days = ['Lun.','Mar.','Mer.','Jeu.','Ven.','Sam.','Dim.'];
     final months = ['jan.','fév.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
-    final label = '${days[now.weekday-1]} ${now.day} ${months[now.month-1]}';
+    final label = '${days[date.weekday-1]} ${date.day} ${months[date.month-1]}';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16,20,16,8),
       child: Row(mainAxisAlignment:MainAxisAlignment.spaceBetween, children:[
-        Text("Aujourd'hui", style:GoogleFonts.poppins(fontSize:16, fontWeight:FontWeight.w700, color:AppColors.textPrimary)),
+        Text(isToday ? "Aujourd'hui" : 'Prochain menu', style:GoogleFonts.poppins(fontSize:16, fontWeight:FontWeight.w700, color:AppColors.textPrimary)),
         Text(label, style:GoogleFonts.inter(fontSize:13, color:AppColors.textSecondary)),
       ]),
     );
@@ -232,7 +250,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openDish(Dish dish) async {
     final result = await Navigator.push(context,
         MaterialPageRoute(builder: (_) => DishDetailScreen(dish: dish, balance: _balance)));
-    if (result is int && mounted) setState(() => _balance = result);
+    if (result is int && mounted) {
+      setState(() => _balance = result);
+      _load();
+    }
   }
 
   Widget _miniCard(Dish dish) {
