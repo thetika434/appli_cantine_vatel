@@ -115,13 +115,19 @@ class _MenusScreenState extends State<MenusScreen> {
           Expanded(
             child: _loading
               ? const Center(child: CircularProgressIndicator())
-              : dishes.isEmpty
-              ? Center(child: Text('Pas de menu publié pour ce jour.',
-                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)))
-              : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16,8,16,24),
-                  itemCount: dishes.length,
-                  itemBuilder: (_, i) => _dishRow(dishes[i]),
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: dishes.isEmpty
+                    ? ListView(children: [
+                        const SizedBox(height: 160),
+                        Center(child: Text('Pas de menu publié pour ce jour.',
+                          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary))),
+                      ])
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16,8,16,24),
+                        itemCount: dishes.length,
+                        itemBuilder: (_, i) => _dishRow(dishes[i]),
+                      ),
                 ),
           ),
         ]),

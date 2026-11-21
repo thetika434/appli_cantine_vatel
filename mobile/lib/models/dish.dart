@@ -51,7 +51,7 @@ class Dish {
     ('bœuf', 'riz_boeuf.jpg'),
     ('légume', 'riz_legumes.jpg'),
     ('legume', 'riz_legumes.jpg'),
-    ('feuille', 'riz_legumes2.jpg'),
+    ('feuille', 'riz_legumes.jpg'),
     ('riz', 'riz_sauce_tomate.jpg'),
   ];
 
