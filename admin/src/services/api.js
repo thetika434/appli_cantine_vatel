@@ -45,7 +45,25 @@ export async function getDashboard(date) {
 }
 
 export async function getOrders(date) {
-  return request(`/admin/orders${date ? `?date=${date}` : ''}`)
+  const data = await request(`/admin/orders${date ? `?date=${date}` : ''}`)
+  if (!data) return data
+  // Normalise les noms de champs selon ce que la page attend
+  if (data.orders) {
+    data.orders = data.orders.map(o => ({
+      ...o,
+      student_name: o.student_name ?? o.full_name ?? '',
+      amount_fcfa:  o.amount_fcfa  ?? o.price_fcfa ?? 0,
+      slot:         o.slot         ?? '12h00 – 13h30',
+    }))
+  }
+  if (data.summary) {
+    data.summary = data.summary.map(s => ({
+      ...s,
+      dish_name: s.dish_name ?? s.name ?? '',
+      count:     s.count     ?? s.to_serve ?? 0,
+    }))
+  }
+  return data
 }
 
 export async function markServed(id) {
