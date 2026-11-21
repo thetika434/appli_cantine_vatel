@@ -238,7 +238,8 @@ router.post('/recharge/initiate', ...student, async (req, res) => {
     const idempotencyKey = uuidv4();
 
     // Normaliser le numéro au format +225XXXXXXXXX attendu par Adullam
-    const normalizedPhone = phone.startsWith('+') ? phone : `+225${phone.replace(/^0/, '')}`;
+    // Format CI : 0XXXXXXXXX → +2250XXXXXXXXX (garder le 0 après +225)
+    const normalizedPhone = phone.startsWith('+') ? phone : `+225${phone}`;
 
     // Appel Adullam
     const aduRes = await fetch('https://api.adullam.dev/v1/payments', {

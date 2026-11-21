@@ -128,7 +128,7 @@ router.post('/parent/recharge', ...parent, async (req, res) => {
     const { v4: uuidv4 } = require('uuid');
     const idempotencyKey = uuidv4();
 
-    const normalizedPhone = phone.startsWith('+') ? phone : `+225${phone.replace(/^0/, '')}`;
+    const normalizedPhone = phone.startsWith('+') ? phone : `+225${phone}`;
 
     const aduRes = await fetch('https://api.adullam.dev/v1/payments', {
       method: 'POST',
