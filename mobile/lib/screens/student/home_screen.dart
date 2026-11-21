@@ -5,6 +5,7 @@ import '../../services/api.dart';
 import '../../models/dish.dart';
 import 'dish_detail_screen.dart';
 import '../recharge_screen.dart';
+import '../notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -111,7 +112,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _balanceCard() => Container(
+  Widget _balanceCard() => Stack(children: [
+    _balanceCardBody(),
+    Positioned(
+      top: 30, right: 32,
+      child: NotificationBell(
+        color: Colors.white,
+        size: 26,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+      ),
+    ),
+  ]);
+
+  Widget _balanceCardBody() => Container(
     margin: const EdgeInsets.fromLTRB(16,16,16,0),
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     decoration: const BoxDecoration(

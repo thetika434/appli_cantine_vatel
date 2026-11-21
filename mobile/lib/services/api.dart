@@ -92,6 +92,23 @@ class ApiService implements AuthRepository {
     return data;
   }
 
+  Future<Map<String, dynamic>> getNotifications() async {
+    final token = await getToken();
+    final resp = await _dio.get('/notifications',
+        options: Options(headers: {'Authorization': 'Bearer $token'}));
+    final data = resp.data as Map<String, dynamic>;
+    final unread = data['unread_count'];
+    if (unread is int) unreadNotifications.value = unread;
+    return data;
+  }
+
+  Future<void> markNotificationsRead() async {
+    final token = await getToken();
+    await _dio.patch('/notifications/read',
+        options: Options(headers: {'Authorization': 'Bearer $token'}));
+    unreadNotifications.value = 0;
+  }
+
   Future<Map<String, dynamic>> getMenusWeek({String? date}) async {
     final token = await getToken();
     final resp = await _dio.get('/menus/week',
@@ -183,6 +200,8 @@ final appNavigatorKey = GlobalKey<NavigatorState>();
 
 // Solde de l'élève connecté, partagé entre les onglets.
 final studentBalance = ValueNotifier<int?>(null);
+
+final unreadNotifications = ValueNotifier<int>(0);
 
 class _AuthInterceptor extends Interceptor {
   @override

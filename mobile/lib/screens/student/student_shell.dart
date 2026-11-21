@@ -5,6 +5,7 @@ import 'home_screen.dart';
 import 'menus_screen.dart';
 import 'history_screen.dart';
 import 'profile_screen.dart';
+import '../notifications_screen.dart';
 
 class StudentShell extends StatefulWidget {
   const StudentShell({super.key});
@@ -13,8 +14,14 @@ class StudentShell extends StatefulWidget {
   State<StudentShell> createState() => _StudentShellState();
 }
 
-class _StudentShellState extends State<StudentShell> {
+class _StudentShellState extends State<StudentShell> with NotificationPolling {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    startNotificationPolling();
+  }
 
   static const _pages = [
     HomeScreen(),
