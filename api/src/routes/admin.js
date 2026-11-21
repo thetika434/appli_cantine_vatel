@@ -23,7 +23,7 @@ router.get('/admin/dashboard', ...admin, async (req, res) => {
 
     // Revenus des 7 derniers jours
     const { rows: weekly } = await pool.query(
-      `SELECT gs.day::text AS date,
+      `SELECT to_char(gs.day, 'YYYY-MM-DD') AS date,
               COALESCE(SUM(d.price_fcfa) FILTER (WHERE r.status != 'cancelled'), 0) AS revenue_fcfa,
               COUNT(r.id) FILTER (WHERE r.status != 'cancelled') AS orders
        FROM generate_series(
