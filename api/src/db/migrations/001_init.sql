@@ -109,16 +109,16 @@ CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions (student_id, cr
 INSERT INTO users (matricule, password_hash, role, full_name, class, phone)
 VALUES
   ('admin@vatel.ci',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh9y',
+   '$2a$10$86sHwmhMP8OktEiyOm7BPOVEnkKi3K.g5x6/44OPcpRnvYMGaRzWS',
    'admin', 'Directeur Admin', NULL, NULL),
   ('VAT-24-0157',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh9y',
+   '$2a$10$86sHwmhMP8OktEiyOm7BPOVEnkKi3K.g5x6/44OPcpRnvYMGaRzWS',
    'student', 'Aya Koné', 'Terminale D', '0701000157'),
   ('VAT-24-0158',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh9y',
+   '$2a$10$86sHwmhMP8OktEiyOm7BPOVEnkKi3K.g5x6/44OPcpRnvYMGaRzWS',
    'student', 'Yao Kouassi', 'Terminale D', '0701000158'),
   ('+2250757001001',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh9y',
+   '$2a$10$86sHwmhMP8OktEiyOm7BPOVEnkKi3K.g5x6/44OPcpRnvYMGaRzWS',
    'parent', 'Mme Koné', NULL, '+2250757001001')
 ON CONFLICT (matricule) DO NOTHING;
 
