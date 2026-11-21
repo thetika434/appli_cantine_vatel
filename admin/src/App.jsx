@@ -34,7 +34,7 @@ export default function App() {
 
   return (
     <Layout user={user} page={page} onNavigate={setPage} onLogout={handleLogout}>
-      {page === 'dashboard' && <Dashboard />}
+      {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
       {page === 'orders'    && <Orders />}
       {page === 'menus'     && <Menus />}
     </Layout>

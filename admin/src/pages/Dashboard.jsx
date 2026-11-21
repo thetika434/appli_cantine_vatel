@@ -37,7 +37,7 @@ function BarChart({ weekly }) {
   )
 }
 
-export default function Dashboard() {
+export default function Dashboard({ onNavigate }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -74,7 +74,8 @@ export default function Dashboard() {
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--surface)', fontSize: 14, fontWeight: 500, color: 'var(--text)' }}
+            onClick={() => onNavigate('orders')}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--surface)', fontSize: 14, fontWeight: 500, color: 'var(--text)', cursor: 'pointer' }}
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
               <line x1="8" y1="6" x2="21" y2="6" strokeLinecap="round" />
@@ -86,7 +87,10 @@ export default function Dashboard() {
             </svg>
             Voir les commandes
           </button>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 10, background: 'var(--orange)', color: '#fff', fontSize: 14, fontWeight: 600 }}>
+          <button
+            onClick={() => onNavigate('menus')}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 10, background: 'var(--orange)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+          >
             + Nouveau plat
           </button>
         </div>

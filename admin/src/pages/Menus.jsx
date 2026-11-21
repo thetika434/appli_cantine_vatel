@@ -111,6 +111,29 @@ export default function Menus() {
     setForm(f => ({ ...f, [key]: val }))
   }
 
+  function handlePhotoChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = new Image()
+      img.onload = () => {
+        const MAX = 600
+        let { width, height } = img
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * MAX / width); width = MAX }
+          else { width = Math.round(width * MAX / height); height = MAX }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width; canvas.height = height
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+        setField('photo_url', canvas.toDataURL('image/jpeg', 0.75))
+      }
+      img.src = ev.target.result
+    }
+    reader.readAsDataURL(file)
+  }
+
   function openAdd() {
     setEditingDish(null)
     setForm({ ...EMPTY_FORM, serve_date: selectedDay })
@@ -338,29 +361,41 @@ export default function Menus() {
                 <button onClick={() => setPanelOpen(false)} style={{ background: 'none', color: 'var(--text-secondary)', fontSize: 20, lineHeight: 1 }}>×</button>
               </div>
 
-              {/* Photo preview */}
-              {form.photo_url && (
-                <div style={{ width: '100%', height: 140, borderRadius: 10, overflow: 'hidden', marginBottom: 14, background: 'var(--bg)' }}>
-                  <img
-                    src={form.photo_url}
-                    alt="Aperçu"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={e => { e.target.style.display = 'none' }}
-                  />
-                </div>
-              )}
-
               <form onSubmit={handleSave}>
-                {/* Photo URL */}
-                <div style={{ marginBottom: 12 }}>
-                  <label style={labelStyle}>URL de la photo</label>
-                  <input
-                    type="url"
-                    placeholder="https://…"
-                    value={form.photo_url}
-                    onChange={e => setField('photo_url', e.target.value)}
-                    style={inputStyle}
-                  />
+                {/* Photo upload */}
+                <div style={{ marginBottom: 14 }}>
+                  <label style={labelStyle}>Photo du plat</label>
+                  <input id="photo-file-input" type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+                  <div
+                    onClick={() => document.getElementById('photo-file-input').click()}
+                    style={{
+                      width: '100%', height: 130, borderRadius: 10, overflow: 'hidden',
+                      background: 'var(--bg)', border: '1.5px dashed var(--border)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', marginBottom: 6, position: 'relative',
+                    }}
+                  >
+                    {form.photo_url ? (
+                      <img src={form.photo_url} alt="Aperçu" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.style.display = 'none' }} />
+                    ) : (
+                      <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" style={{ display: 'block', margin: '0 auto 6px' }}>
+                          <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none" />
+                          <polyline points="21,15 16,10 5,21" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <div style={{ fontSize: 12 }}>Cliquer pour importer une photo</div>
+                      </div>
+                    )}
+                    {form.photo_url && (
+                      <div style={{
+                        position: 'absolute', bottom: 6, right: 6,
+                        background: 'rgba(0,0,0,0.5)', color: '#fff',
+                        borderRadius: 6, padding: '3px 8px', fontSize: 11,
+                      }}>
+                        Changer
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Nom */}
