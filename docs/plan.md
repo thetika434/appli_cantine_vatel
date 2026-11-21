@@ -217,7 +217,7 @@ Authentification : en-tête `Authorization: Bearer <token>` sur toutes les route
 | `POST` | `/reservations` | `{ dish_id }` | `{ reservation, new_balance }` |
 | `GET` | `/reservations` | — | `{ reservations[] }` |
 | `GET` | `/transactions` | `?type=debit\|credit` | `{ transactions[] }` |
-| `POST` | `/recharge/initiate` | `{ amount, phone, channel }` | `{ payment_id, status: 'pending' }` |
+| `POST` | `/recharge/initiate` | `{ amount, phone, channel }` | `{ payment_id, status: 'pending', redirect_url? }` |
 
 **Détail `POST /reservations` (atomique) :**
 ```
@@ -241,7 +241,7 @@ COMMIT;
 | `GET` | `/parent/children` | — | `{ children: [{ student, balance }] }` |
 | `GET` | `/parent/children/:student_id` | — | `{ student, balance, recent_transactions[] }` |
 | `GET` | `/parent/transactions` | `?student_id=` | `{ transactions[] }` (tous les enfants ou filtré) |
-| `POST` | `/parent/recharge` | `{ student_id, amount, phone, channel }` | `{ payment_id }` |
+| `POST` | `/parent/recharge` | `{ student_id, amount, phone, channel }` | `{ payment_id, status, redirect_url? }` |
 
 ---
 
@@ -560,16 +560,26 @@ Réponse **200** :
 
 Requête :
 ```json
-{ "amount": 5000, "phone": "0712345678", "channel": "orangeCI" }
+{ "amount": 5000, "phone": "0556450326", "channel": "waveCI" }
 ```
 - `amount` : entier FCFA > 0, multiple de 5
+- `phone` : numéro local CI (ex. `0556450326`) — l'API normalise en `+2250556450326`
 - `channel` : `"orangeCI"` | `"mtnCI"` | `"moovCI"` | `"waveCI"`
-- Préfixe attendu : `07` → orangeCI, `05` → mtnCI, `01` → moovCI
+- **Pour la démo : utiliser uniquement `"waveCI"`** (clé dev Adullam, seul canal fonctionnel en sandbox)
+- Préfixe attendu en prod : `07` → orangeCI, `05` → mtnCI, `01` → moovCI
 
 Réponse **200** :
 ```json
-{ "payment_id": "pay_xxx", "status": "pending" }
+{
+  "payment_id": "01a1fe05-c753-64af-ced0-7220e07fbb54",
+  "status": "pending",
+  "redirect_url": "https://pay.wave.com/c/cos-28mts69b82jdp?a=500&c=XOF&m=..."
+}
 ```
+- `redirect_url` : présent si `channel = "waveCI"` — **ouvrir dans le navigateur** pour que l'utilisateur confirme le paiement Wave
+- `ussd` : présent si `channel = "moovCI"` — code à composer (`*155*2*1*XXXXXXXX*MONTANT#`)
+- Pour `orangeCI` / `mtnCI` : ni `redirect_url` ni `ussd` — l'utilisateur reçoit une notification push sur son téléphone
+- Après confirmation, Adullam envoie notre webhook → solde crédité automatiquement
 
 Erreurs :
 | Code | Corps | Cause |
@@ -577,6 +587,7 @@ Erreurs :
 | 400 | `{ "error": "Champs requis : amount, phone, channel" }` | champ manquant |
 | 400 | `{ "error": "Montant invalide" }` | ≤ 0 ou non multiple de 5 |
 | 400 | `{ "error": "Canal invalide" }` | channel inconnu |
+| 502 | `{ "error": "Erreur paiement", "detail": {...} }` | Adullam a refusé |
 
 ---
 
