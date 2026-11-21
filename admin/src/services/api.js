@@ -56,6 +56,22 @@ export async function markCancelled(id) {
   return request(`/admin/orders/${id}/cancel`, { method: 'PATCH' })
 }
 
+export async function getWeekDishes(weekStart) {
+  return request(`/admin/dishes?week=${weekStart}`)
+}
+
+export async function createDish(data) {
+  return request('/admin/dishes', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export async function updateDish(id, data) {
+  return request(`/admin/dishes/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+}
+
+export async function deleteDish(id) {
+  return request(`/admin/dishes/${id}`, { method: 'DELETE' })
+}
+
 export function formatFCFA(n) {
   return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' FCFA'
 }

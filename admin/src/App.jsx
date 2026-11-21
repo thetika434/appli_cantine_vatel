@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Login from './pages/Login.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Orders from './pages/Orders.jsx'
+import Menus from './pages/Menus.jsx'
 import Layout from './components/Layout.jsx'
 
 export default function App() {
@@ -35,6 +36,7 @@ export default function App() {
     <Layout user={user} page={page} onNavigate={setPage} onLogout={handleLogout}>
       {page === 'dashboard' && <Dashboard />}
       {page === 'orders'    && <Orders />}
+      {page === 'menus'     && <Menus />}
     </Layout>
   )
 }

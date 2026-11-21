@@ -23,6 +23,18 @@ const NAV = [
       </svg>
     ),
   },
+  {
+    id: 'menus', label: 'Menus',
+    icon: (
+      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+        <path d="M18 8h1a4 4 0 010 8h-1" strokeLinecap="round" />
+        <path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" />
+        <line x1="6" y1="1" x2="6" y2="4" strokeLinecap="round" />
+        <line x1="10" y1="1" x2="10" y2="4" strokeLinecap="round" />
+        <line x1="14" y1="1" x2="14" y2="4" strokeLinecap="round" />
+      </svg>
+    ),
+  },
 ]
 
 export default function Layout({ user, page, onNavigate, onLogout, children }) {
