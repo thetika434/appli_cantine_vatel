@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { verifyJWT, requireRole } = require('../middleware/auth');
 const pool = require('../db/pool');
+const notify = require('../db/notify');
 
 const admin = [verifyJWT, requireRole('admin')];
 
@@ -122,6 +123,15 @@ router.patch('/admin/orders/:id/serve', ...admin, async (req, res) => {
     );
     if (!rows.length) return res.status(404).json({ error: 'Réservation introuvable ou déjà traitée' });
     res.json({ reservation: rows[0] });
+
+    // Notifier l'élève
+    const r = rows[0];
+    const { rows: d } = await pool.query('SELECT name FROM dishes WHERE id = $1', [r.dish_id]);
+    notify(r.student_id, {
+      title: '✅ Repas servi',
+      body: `Votre commande "${d[0]?.name}" a été servie. Bon appétit !`,
+      type: 'served',
+    });
   } catch (err) {
     console.error('PATCH /admin/orders/:id/serve', err);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -174,6 +184,13 @@ router.patch('/admin/orders/:id/cancel', ...admin, async (req, res) => {
 
     await client.query('COMMIT');
     res.json({ reservation: { ...reservation, status: 'cancelled' } });
+
+    // Notifier l'élève du remboursement
+    notify(reservation.student_id, {
+      title: '↩️ Commande annulée',
+      body: `Votre commande "${dish.name}" a été annulée. ${dish.price_fcfa} FCFA remboursés sur votre solde.`,
+      type: 'cancelled',
+    });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('PATCH /admin/orders/:id/cancel', err);

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { verifyJWT, requireRole } = require('../middleware/auth');
 const pool = require('../db/pool');
+const notify = require('../db/notify');
 
 const student = [verifyJWT, requireRole('student')];
 
@@ -161,6 +162,13 @@ router.post('/reservations', ...student, async (req, res) => {
 
     await client.query('COMMIT');
     res.json({ reservation, new_balance: newBalance });
+
+    // Notification fire-and-forget
+    notify(req.user.id, {
+      title: '🍽️ Réservation confirmée',
+      body: `${dish.name} réservé pour ${dish.price_fcfa} FCFA. Nouveau solde : ${newBalance} FCFA.`,
+      type: 'reservation',
+    });
   } catch (err) {
     await client.query('ROLLBACK');
     if (err.code === '23505') { // unique_violation

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const crypto = require('crypto');
 const pool = require('../db/pool');
+const notify = require('../db/notify');
 
 // POST /api/webhooks/adullam
 // express.raw() est monté dans app.js — req.body est un Buffer ici
@@ -70,6 +71,26 @@ router.post('/webhooks/adullam', async (req, res) => {
       );
 
       await client.query('COMMIT');
+
+      // Notifier l'élève
+      notify(recharge.student_id, {
+        title: '💰 Solde rechargé',
+        body: `${recharge.amount_fcfa} FCFA ont été ajoutés à votre solde.`,
+        type: 'recharge',
+      });
+
+      // Notifier le parent s'il a initié la recharge
+      const { rows: rechRow } = await pool.query(
+        'SELECT initiated_by FROM recharges WHERE id = $1',
+        [recharge.id]
+      );
+      if (rechRow.length && rechRow[0].initiated_by !== recharge.student_id) {
+        notify(rechRow[0].initiated_by, {
+          title: '💰 Recharge effectuée',
+          body: `La recharge de ${recharge.amount_fcfa} FCFA pour votre enfant a été créditée.`,
+          type: 'recharge',
+        });
+      }
     } catch (err) {
       await client.query('ROLLBACK');
       console.error('webhook credit ROLLBACK', err);

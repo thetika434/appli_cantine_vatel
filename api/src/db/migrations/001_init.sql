@@ -102,6 +102,20 @@ CREATE INDEX IF NOT EXISTS idx_reservations_user ON reservations (student_id, cr
 CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions (student_id, created_at DESC);
 
 -- ─────────────────────────────────────────
+-- notifications  (in-app, polling mobile)
+-- ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS notifications (
+  id         SERIAL       PRIMARY KEY,
+  user_id    INT          NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title      VARCHAR(100) NOT NULL,
+  body       VARCHAR(255) NOT NULL,
+  type       VARCHAR(30)  NOT NULL,  -- 'reservation','served','cancelled','recharge'
+  read       BOOLEAN      NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ  DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications (user_id, read, created_at DESC);
+
+-- ─────────────────────────────────────────
 -- Données de test (idempotentes)
 -- ─────────────────────────────────────────
 -- Mot de passe de tous : "test1234"  → bcrypt hash
