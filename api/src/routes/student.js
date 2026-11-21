@@ -275,7 +275,12 @@ router.post('/recharge/initiate', ...student, async (req, res) => {
       [req.user.id, paymentId, idempotencyKey, amount, phone, channel]
     );
 
-    res.json({ payment_id: paymentId, status: 'pending' });
+    // redirect_url (Wave) ou ussd (Moov) si présents
+    const extra = {};
+    if (aduData.redirect_url) extra.redirect_url = aduData.redirect_url;
+    if (aduData.ussd)         extra.ussd          = aduData.ussd;
+
+    res.json({ payment_id: paymentId, status: 'pending', ...extra });
   } catch (err) {
     console.error('POST /recharge/initiate', err);
     res.status(500).json({ error: 'Erreur serveur' });

@@ -49,10 +49,9 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(
-            'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=800',
+          Image.asset(
+            'assets/images/splash_hero.jpg',
             fit: BoxFit.cover,
-            errorBuilder: (ctx, err, stack) => Container(color: AppColors.orange),
           ),
           Container(
             decoration: const BoxDecoration(

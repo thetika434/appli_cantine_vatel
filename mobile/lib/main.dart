@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/student/student_shell.dart';
+import 'screens/parent/parent_shell.dart';
 import 'services/api.dart';
 
 void main() {
@@ -13,6 +15,9 @@ class CantineApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ApiService tente d'abord la vraie API (https://cantine-vatel.duckdns.org/api)
+    // Tant que /api/auth/login n'est pas prête, l'écran affiche l'erreur et
+    // on peut passer FakeAuthRepository() pour la démo en changeant cette ligne.
     final repo = ApiService();
 
     return MaterialApp(
@@ -23,22 +28,9 @@ class CantineApp extends StatelessWidget {
       routes: {
         '/': (_) => const SplashScreen(),
         '/login': (_) => LoginScreen(repo: repo),
-        '/student/home': (_) => const _PlaceholderScreen(title: 'Accueil élève'),
-        '/parent/home': (_) => const _PlaceholderScreen(title: 'Accueil parent'),
+        '/student/home': (_) => const StudentShell(),
+        '/parent/home': (_) => const ParentShell(),
       },
-    );
-  }
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text(title)),
     );
   }
 }
