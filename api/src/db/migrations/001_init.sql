@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS dishes (
   id          SERIAL       PRIMARY KEY,
   name        VARCHAR(100) NOT NULL,
   description TEXT,
-  photo_url   VARCHAR(255),
+  photo_url   TEXT,
   price_fcfa  INT  NOT NULL CHECK (price_fcfa > 0 AND price_fcfa % 5 = 0),
   serve_date  DATE NOT NULL,
   slot_start  TIME NOT NULL DEFAULT '12:00',
